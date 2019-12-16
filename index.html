@@ -1,0 +1,65 @@
+<html>
+    <head>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+            }
+            canvas {
+                background: #383838;
+            }    
+        </style>
+    </head>
+    <body>
+        <!--Main playfield-->
+        <canvas id="canvas"></canvas>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+        <script src="input.js"></script>
+        <script src="physics.js"></script>
+        <script src="render.js"></script>
+        <script>
+            var socket = io();
+
+            var name = prompt("Enter a name:");
+            var color = prompt("Enter a color:");
+            if (name == "") {
+                name = "unnamed";
+            }
+            if (color == "") {
+                color = "white";
+            }
+
+            var rect = {
+                x: 0,
+                y: 0,
+                width: 25,
+                height: 25,
+                velX: 0,
+                velY: 0,
+                maxVel: 5,
+                color: color,
+                name: name
+            }
+
+            var queue = {};
+
+            var startTime;
+            socket.on("update", function(data) {
+                queue = data;
+            });
+            socket.on("players", (data) => {
+                players = data;
+            });
+            socket.on('pong', function() {
+              pingms = Date.now() - startTime;
+            });
+
+            setInterval(() => {
+                socket.emit("players");
+                startTime = Date.now();
+                socket.emit("ping");
+            }, 1000);
+
+        </script>
+    </body>
+</html>
