@@ -7,26 +7,48 @@
             }
             canvas {
                 background: #383838;
-            }    
+            }
+            #chatbox {
+                position: fixed;
+                bottom: 0;
+                width: 20%;
+                padding: 5px;
+                margin: 5px;
+                color: white;
+                background: rgba(255, 255, 255, 0);
+                border: 2px solid white;
+            }
         </style>
     </head>
     <body>
+        <input id="chatbox" placeholder="Type something...">
         <!--Main playfield-->
         <canvas id="canvas"></canvas>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+        <script>var socket = io();</script>
         <script src="input.js"></script>
         <script src="physics.js"></script>
         <script src="render.js"></script>
+        <script src="events.js"></script>
         <script>
-            var socket = io();
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
 
             var name = prompt("Enter a name:");
-            var color = prompt("Enter a color:");
+            var color = prompt("Enter your cube color:");
+            var border = prompt("Enter your border color (Leave blank to use cube color):");
+            var chatColor = prompt("Enter your chat color (Leave blank to use cube color):");
             if (name == "") {
-                name = "unnamed";
+                name = "Cube";
             }
             if (color == "") {
-                color = "white";
+                color = "black";
+            }
+            if (border == "") {
+                border = color;
+            }
+            if (chatColor == "") {
+                chatColor = color;
             }
 
             var rect = {
@@ -38,22 +60,13 @@
                 velY: 0,
                 maxVel: 5,
                 color: color,
-                name: name
+                border: border,
+                name: name,
+                chatMessage: "",
+                chatColor: chatColor
             }
 
-            var queue = {};
-
-            var startTime;
-            socket.on("update", function(data) {
-                queue = data;
-            });
-            socket.on("players", (data) => {
-                players = data;
-            });
-            socket.on('pong', function() {
-              pingms = Date.now() - startTime;
-            });
-
+            // Updating players and ping info
             setInterval(() => {
                 socket.emit("players");
                 startTime = Date.now();
