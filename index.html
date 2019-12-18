@@ -5,10 +5,34 @@
                 margin: 0;
                 padding: 0;
             }
+            body {
+                background: #383838;
+            }
+            #login {
+                position: fixed;
+                width: 300px;
+                height: 450px;
+                left: 50%;
+                top: 55%;
+                transform: translate(-50%, -50%);
+                z-index: 1;
+                background: rgba(255, 255, 255, 0);
+                border: 5px solid white;
+                padding: 25px;
+                border-radius: 10   px;
+            }
+            #title {
+                position: absolute;
+                left: 50%;
+                transform: translate(-50%);
+                z-index: 1;
+            }
             canvas {
+                filter: blur(5px);
                 background: #383838;
             }
             #chatbox {
+                display: none;
                 position: fixed;
                 bottom: 0;
                 width: 20%;
@@ -18,11 +42,53 @@
                 background: rgba(255, 255, 255, 0);
                 border: 2px solid white;
             }
+            input {
+                width: 100%;
+                padding: 10px;
+                margin: 15px 0px;
+                color: white;
+                font-size: 15px;
+                background: rgba(255, 255, 255, 0);
+                border: 2px solid white;
+                border-radius: 5px;
+            }
+            span {
+                color: white;
+                font-size: 25px;
+                margin: 20px 0px;
+                font-family: sans-serif;
+            }
+            button {
+                background: rgba(255, 255, 255, 0);
+                padding: 10px 20px;
+                width: 100%;
+                margin: 15px 0px;
+                color: white;
+                border: 2px solid white;
+                border-radius: 5px;
+                transition: color 1s, background 1s;
+            }
+            button:hover {
+                background-color: white;
+                color: black;
+            }
         </style>
     </head>
     <body>
+        <img id="title" src="cube.png" width="300">
         <input id="chatbox" placeholder="Type something...">
         <!--Main playfield-->
+        <div id="login">
+            <span>Name:</span>
+            <input id="name" placeholder="Enter your cube's name" oninput=color()>
+            <span>Color:</span>
+            <input id="color" placeholder="Enter your cube's color" oninput=color()>
+            <span>Border:</span>
+            <input id="border" placeholder="Leave empty to use your cube's color" oninput=color()>
+            <span>Chat color:</span>
+            <input id="chatColor" placeholder="Leave empty to use your cube's color" oninput=color()>
+            <button id="submit" onclick=start()>Enter</button>
+        </div>
         <canvas id="canvas"></canvas>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
         <script>var socket = io();</script>
@@ -33,37 +99,61 @@
         <script>
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
+            
+            var rect = {};
+            function color() {
+                // I'll improve this some other time.
+                let name = document.getElementById("name");
+                let color = document.getElementById("color");
+                let border = document.getElementById("border");
+                let chatColor = document.getElementById("chatColor");
+                let login = document.getElementById("login");
 
-            var name = prompt("Enter a name:");
-            var color = prompt("Enter your cube color:");
-            var border = prompt("Enter your border color (Leave blank to use cube color):");
-            var chatColor = prompt("Enter your chat color (Leave blank to use cube color):");
-            if (name == "") {
-                name = "Cube";
+                name.style.color = color.value;
+                color.style.color = color.value;
+                chatColor.style.color = chatColor.value;
+                border.style.color = border.value;
+                border.style.borderColor = border.value;
+                color.style.borderColor = border.value;
+                login.style.borderColor = border.value;
+                chatColor.style.borderColor = border.value;
+                name.style.borderColor = border.value;
             }
-            if (color == "") {
-                color = "black";
-            }
-            if (border == "") {
-                border = color;
-            }
-            if (chatColor == "") {
-                chatColor = color;
-            }
-
-            var rect = {
-                x: 0,
-                y: 0,
-                width: 25,
-                height: 25,
-                velX: 0,
-                velY: 0,
-                maxVel: 5,
-                color: color,
-                border: border,
-                name: name,
-                chatMessage: "",
-                chatColor: chatColor
+            function start() {
+                let name = document.getElementById("name").value;
+                let color = document.getElementById("color").value;
+                let border = document.getElementById("border").value;
+                let chatColor = document.getElementById("chatColor").value;
+                if (name == "") {
+                    name = "Cube";
+                }
+                if (color == "") {
+                    color = "black";
+                }
+                if (border == "") {
+                    border = color;
+                }
+                if (chatColor == "") {
+                    chatColor = color;
+                }
+                rect = {
+                    x: 0,
+                    y: 0,
+                    width: 25,
+                    height: 25,
+                    velX: 0,
+                    velY: 0,
+                    maxVel: 5,
+                    color: color,
+                    border: border,
+                    name: name,
+                    chatMessage: "",
+                    chatColor: chatColor
+                }
+                document.getElementById("chatbox").style.display = "block";
+                document.getElementById("login").style.display = "none";
+                document.getElementById("title").style.display = "none";
+                canvas.style.filter = "none";
             }
 
             // Updating players and ping info

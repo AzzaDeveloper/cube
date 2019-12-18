@@ -42,6 +42,3 @@ function checkKeys() {
         rect.velX += 5;
     }
 }
-function announcement(message) {
-    socket.emit("announcement", message);
-}
