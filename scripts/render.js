@@ -1,26 +1,66 @@
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 
-var players = 0;
-var pingms = 0;
+var players = 0;;
 
 var queue = {};
 
+function fillRect(x, y, width, height, mode) {
+    if (mode == undefined) {
+        ctx.fillRect(x, y, width, height);
+    } else if (mode == "center") {
+        ctx.fillRect(x - width / 2, y - height / 2, width, height);
+    }
+}
 function renPlayer(cube) {
     // Name
-    ctx.fillStyle = cube.color;
-    ctx.textAlign = "center";
-    ctx.font = "20px Arial";
-    ctx.fillText(cube.name, cube.x + cube.width / 2, cube.y - cube.height + 10);
-    // White 2px border
-    ctx.fillStyle = cube.border;
-    ctx.fillRect(cube.x, cube.y, cube.width, cube.height);
-    // Cube
-    ctx.fillStyle = cube.color;
-    ctx.fillRect(cube.x + 2, cube.y + 2, cube.width - 4, cube.height - 4);
-    // Chat message
-    ctx.fillStyle = cube.chatColor;
-    ctx.fillText(cube.chatMessage, cube.x + cube.width / 2, cube.y + cube.height + 25);
+    if (cube.color != undefined && cube.alive) {
+        const color = cube.color;
+        const meta = cube.meta;
+        // Cube name
+        ctx.fillStyle = color.cube;
+        ctx.textAlign = "center";
+        ctx.font = "20px Arial";
+        ctx.fillText(cube.name, cube.x, cube.y - cube.width - 10);
+        // White 2px border
+        ctx.fillStyle = color.border;
+        fillRect(cube.x, cube.y, cube.width, cube.height, "center");
+        // Cube
+        ctx.fillStyle = color.cube;
+        fillRect(cube.x, cube.y, cube.width - 4, cube.height - 4, "center");
+        // Health
+        ctx.fillRect(cube.x - 30, cube.y + cube.width - 5, (cube.stats.health / cube.stats.maxHealth) * 60, 10)
+        // Chat message 
+        ctx.fillStyle = color.chatColor;
+        ctx.fillText(cube.chatMessage, cube.x, cube.y + cube.height + 25);
+        // Bullets
+        ctx.fillStyle = color.cube;
+        for (bullet in cube.bullets) {
+            bullet = cube.bullets[bullet]
+            fillRect(bullet.x, bullet.y, bullet.width, bullet.height, "center");
+        }
+    }
+}
+function renBullets() {
+    for (bullet in rect.bullets) {
+        bullet = rect.bullets[bullet];
+        // Move the bullet according to the directino of the mouse
+        bullet.x += bullet.dx;
+        bullet.y += bullet.dy;
+        // Check collision with others players + other player's bullet
+        for (pplayer in queue) {
+            player = queue[pplayer];
+            if (bullet.checkCollision(player.x, player.y, player.width, player.height)) {
+                //remove the bullet from player
+                socket.emit("damage", pplayer, bullet.damage)
+                rect.bullets.splice(rect.bullets.indexOf(bullet), 1);
+            }
+        }
+        if ((bullet.x > canvas.width || bullet.x < 0) || (bullet.y > canvas.height || bullet.y < 0)) {
+            // If out of screen, remove bullet
+            rect.bullets.splice(rect.bullets.indexOf(bullet), 1);
+        }
+    }
 }
 function render() {
     canvas.width = window.innerWidth;
@@ -35,6 +75,10 @@ function render() {
         const cube = queue[id];
         renPlayer(cube);
     }
+    // Draw the local player
+    renPlayer(rect);
+    // Handles the bullets
+    renBullets();
     // Write down users and ping
     ctx.fillStyle = "white";
     ctx.textAlign = "end";

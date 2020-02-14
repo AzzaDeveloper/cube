@@ -9,8 +9,8 @@ const rl = readline.createInterface({
 });
 
 var users = 0;
-var ips = []
 var cubes = {};
+var ips = []
 //Express
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
@@ -23,21 +23,24 @@ io.on('connection', (socket) => {
     const ip = socket.request.connection.remoteAddress.substr(7, socket.request.connection.remoteAddress.length);
     // Prevent same ip from connecting multiple times
     if (ips.indexOf(ip) != -1 && ip != "127.0.0.1") {
-        console.log(ip + " tried to connect more than once.");
+        console.log(`${yellow}${ip} tried to connect more than once.${reset}`);
         socket.disconnect();
     } else {
         verified = true;
         ips.push(ip);
-        console.log(ip + " joined.");
+        console.log(`${yellow}${ip} joined. ID: ${socket.id}`);
     }
     if (verified) {
         // Update user count
         users++;
-        // Add newly connected user to object of all players
         cubes[socket.id] = {};
         // Event handling
         socket.on('state', (data) => {
             cubes[socket.id] = data;
+            socket.broadcast.emit("update", data, socket.id)
+        });
+        socket.on('damage', (data, amount) => {
+            io.to(data).emit("damage", amount)
         });
         socket.on('players', () => {
             socket.emit("players", users);
@@ -45,27 +48,38 @@ io.on('connection', (socket) => {
         socket.on("ping", () => {
             socket.emit("pong");
         })
-        // Send positions of all cubes back to clients
-        setInterval(() => {
-            io.emit("update", cubes);
-        }, 0);
         // Handle disconnections
         socket.on("disconnect", () => {
-            console.log(ip + " left.")
+            console.log(`${yellow}${ip} left. ID: ${socket.id}${reset}`)
+            io.emit("disconnect", socket.id)
             delete cubes[socket.id];
             ips.splice(ips.indexOf(ip), 1);
             users--;
         })
     }
 });
+//CLI
+
+const black = "\u001b[30m"
+const red = "\u001b[31m"
+const green = "\u001b[32m"
+const yellow = "\u001b[33m"
+const blue = "\u001b[34m"
+const magenta = "\u001b[35m"
+const cyan = "\u001b[36m"
+const white = "\u001b[37m"
+const reset =" \u001b[0m"
+
 http.listen(6969, () => {
-    console.log('Server started. Listening on :6969');
+    console.log(`${green}Server started. Listening on :6969${reset}`);
 });
 // Host-only: Commands
 rl.on('line', function (input) {
     if (input == "announcement") {
-        rl.question("Enter message: ", (input) => {
-            io.emit("anouncement", input);
+        rl.question(`${red}Enter message:${reset}`, (input) => {
+            io.emit("announcement", input);
         })
+    } else if (input == "ips") {
+        console.log(ips)
     }
 });

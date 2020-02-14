@@ -1,4 +1,5 @@
 <html>
+    <meta charset="utf-8"/>
     <head>
         <style>
             * {
@@ -76,7 +77,7 @@
     </head>
     <body>
         <img id="title" src="cube.png" width="300">
-        <input id="chatbox" placeholder="Type something...">
+        <input id="chatbox" placeholder="Press Enter">
         <!--Main playfield-->
         <div id="login">
             <span>Name:</span>
@@ -89,41 +90,51 @@
             <input id="chatColor" placeholder="Leave empty to use your cube's color" oninput=color()>
             <button id="submit" onclick=start()>Enter</button>
         </div>
+        <select id="selection">
+            <option>Default</option>
+            <option>Sniper</option>
+            <option>Destroyer</option>
+            <option>Hyperspeed</option>
+            <option>Tank</option>
+            <option>Reimu</option>
+            <option>Stormtrooper</option>
+            <option>Octopath</option>
+        </select>
         <canvas id="canvas"></canvas>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
         <script>var socket = io();</script>
         <script src="input.js"></script>
+        <script src="objects.js"></script>
         <script src="physics.js"></script>
         <script src="render.js"></script>
         <script src="events.js"></script>
+        <script src="projectiles.js"></script>
         <script>
+            //Disabling right click
+            document.addEventListener('contextmenu', event => event.preventDefault());
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-            
-            var rect = {};
-            function color() {
-                // I'll improve this some other time.
-                let name = document.getElementById("name");
-                let color = document.getElementById("color");
-                let border = document.getElementById("border");
-                let chatColor = document.getElementById("chatColor");
-                let login = document.getElementById("login");
-
-                name.style.color = color.value;
-                color.style.color = color.value;
-                chatColor.style.color = chatColor.value;
-                border.style.color = border.value;
-                border.style.borderColor = border.value;
-                color.style.borderColor = border.value;
-                login.style.borderColor = border.value;
-                chatColor.style.borderColor = border.value;
-                name.style.borderColor = border.value;
+            // Getting inputs
+            var elems = ["name", "color", "chatColor", "border",  "login"];
+            for (i = 0; i < elems.length; i++) {
+                elems[i] = document.getElementById(elems[i]);
             }
+            function color() {
+                elems[0].style.color = elems[1].value;
+                elems[1].style.color = elems[1].value;
+                elems[2].style.color = elems[2].value;
+                elems[3].style.color = elems[3].value;
+                for (i = 0; i < elems.length; i++) {
+                    elems[i].style.borderColor = elems[3].value;
+                }
+            }
+            var rect = {};
             function start() {
-                let name = document.getElementById("name").value;
-                let color = document.getElementById("color").value;
-                let border = document.getElementById("border").value;
-                let chatColor = document.getElementById("chatColor").value;
+                let name = elems[0].value;
+                let color = elems[1].value;
+                let border = elems[3].value;
+                let chatColor = elems[2].value;
+
                 if (name == "") {
                     name = "Cube";
                 }
@@ -136,24 +147,17 @@
                 if (chatColor == "") {
                     chatColor = color;
                 }
-                rect = {
-                    x: 0,
-                    y: 0,
-                    width: 25,
-                    height: 25,
-                    velX: 0,
-                    velY: 0,
-                    maxVel: 5,
-                    color: color,
-                    border: border,
-                    name: name,
-                    chatMessage: "",
-                    chatColor: chatColor
-                }
-                document.getElementById("chatbox").style.display = "block";
-                document.getElementById("login").style.display = "none";
+                
+                rect = new cube(name, color, border, chatColor);
+                var selection = document.getElementById("selection");
+                changeClass(selection.options[selection.selectedIndex].text);
+
+                document.getElementById("chatbox").style.display ="block";
+                document.getElementById("login").style.display ="none";
                 document.getElementById("title").style.display = "none";
+                selection.style.display = "none";
                 canvas.style.filter = "none";
+                rect.alive = true;
             }
 
             // Updating players and ping info
