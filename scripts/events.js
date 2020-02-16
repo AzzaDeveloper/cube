@@ -21,10 +21,15 @@ socket.on('pong', () => {
 socket.on("damage", (amount) => {
     rect.stats.health -= amount;
     if (rect.stats.health <= 0) {
+        //Reshow the html
         document.getElementById("chatbox").style.display ="none";
         document.getElementById("login").style.display ="block";
         document.getElementById("title").style.display = "block";
-        canvas.style.filter = "blur 5px";
+        document.getElementById("selection")
+        canvas.style.filter = "blur(5)";
+        // Kill it! Kill the rectangle!
+        rect.x = undefined;
+        rect.y = undefined;
         rect.alive = false;
     }
 })

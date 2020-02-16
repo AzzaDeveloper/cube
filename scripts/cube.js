@@ -4,12 +4,9 @@ class cube {
         this.y = window.innerHeight / 2;
         this.width = 25;
         this.height = 25;
-        this.velX = 0;
-        this.velY = 0;
-        this.maxVel = 5;
-        this.dashing = false;
-        this.name = name;
+        this.name = name
         this.chatMessage = "";
+        this.dashing = false;
         this.bullets = [];
         this.stats = {
             class: "Default",
@@ -21,26 +18,35 @@ class cube {
             border: border,
             chatColor: chatColor
         };
-        this.bullet = {
-            width: 10,
-            height: 10,
-            damage: 10,
-            speed: 10,
-            loops: {
-                loop1: {
-                    amount: 1,
-                    startX: 0,
-                    offsetX: 0,
-                    startY: 0,
-                    offsetY: 0
-                }
-            }
-        }
         this.meta = {
             time: 0,
             joined: "",
             status: ""
         };
         this.alive = false;
+    }
+}
+var physicsInfo = {
+    velX: 0,
+    velY: 0,
+    maxVel: 5,
+    dashSpeed: 25
+}
+var bulletInfo = {
+    width: 10,
+    height: 10,
+    damage: 15,
+    speed: 10,
+    rate: 0.33,
+    lifetime: 3,
+    type: "default",
+    loops: {
+        loop1: {
+            amount: 1,
+            startX: 0,
+            offsetX: 0,
+            startY: 0,
+            offsetY: 0
+        }
     }
 }

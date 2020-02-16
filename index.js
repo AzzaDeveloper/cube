@@ -1,7 +1,19 @@
 const express = require('express');
 const app = new express();
-const http = require('http').createServer(app);
-const io = require('socket.io')(http);
+const fs = require('fs');
+// Certificate
+const privateKey = fs.readFileSync('certs/private.key', 'utf8');
+const certificate = fs.readFileSync('certs/certificate.crt', 'utf8');
+const ca = fs.readFileSync('certs/ca_bundle.crt', 'utf8');
+const credentials = {
+	key: privateKey,
+	cert: certificate,
+	ca: ca
+};
+//HTTPs server
+const https = require('https').createServer(credentials, app);
+//Socket.io
+const io = require('socket.io')(https);
 const readline = require('readline');
 const rl = readline.createInterface({
     input: process.stdin,
@@ -15,6 +27,9 @@ var ips = []
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
 });
+//Serving files
+app.use(express.static(__dirname, { dotfiles: 'allow' } ));
+app.use(express.static(".well-known"))
 app.use(express.static('scripts'));
 app.use(express.static('assets'));
 // Socket.IO
@@ -59,7 +74,6 @@ io.on('connection', (socket) => {
     }
 });
 //CLI
-
 const black = "\u001b[30m"
 const red = "\u001b[31m"
 const green = "\u001b[32m"
@@ -69,10 +83,6 @@ const magenta = "\u001b[35m"
 const cyan = "\u001b[36m"
 const white = "\u001b[37m"
 const reset =" \u001b[0m"
-
-http.listen(6969, () => {
-    console.log(`${green}Server started. Listening on :6969${reset}`);
-});
 // Host-only: Commands
 rl.on('line', function (input) {
     if (input == "announcement") {
@@ -82,4 +92,8 @@ rl.on('line', function (input) {
     } else if (input == "ips") {
         console.log(ips)
     }
+});
+//HTTPs server
+https.listen(443, () => {
+    console.log(`${green}HTTPs server started. Listening on :443${reset}`);
 });
