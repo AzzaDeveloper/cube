@@ -1,13 +1,13 @@
 class projectile {
-    constructor(x, y, width, height, speed, damage, type, lifetime) {
+    constructor(x, y, width, height, speed, friction, damage, type) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
         this.speed = speed;
+        this.friction = friction;
         this.damage = damage;
         this.type = type;
-        this.lifetime = lifetime;
         this.date = Date.now();
         this.dx = 0;
         this.dy = 0;
@@ -19,8 +19,6 @@ class projectile {
         const dist = Math.sqrt(vx * vx + vy * vy);
         this.dx = (vx / dist) * this.speed;
         this.dy = (vy / dist) * this.speed;
-        // Push to the array
-        rect.bullets.push(this);
     }
     /// shhh. its magic.
     checkCollision(x, y, width, height) {

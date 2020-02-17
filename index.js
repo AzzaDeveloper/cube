@@ -33,6 +33,7 @@ app.use(express.static(".well-known"))
 app.use(express.static('scripts'));
 app.use(express.static('assets'));
 // Socket.IO
+io.emit("announcement", "The game has been updated, please reload the page.")
 io.on('connection', (socket) => {
     var verified = false;
     const ip = socket.request.connection.remoteAddress.substr(7, socket.request.connection.remoteAddress.length);

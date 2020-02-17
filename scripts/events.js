@@ -25,11 +25,11 @@ socket.on("damage", (amount) => {
         document.getElementById("chatbox").style.display ="none";
         document.getElementById("login").style.display ="block";
         document.getElementById("title").style.display = "block";
-        document.getElementById("selection")
-        canvas.style.filter = "blur(5)";
+        canvas.style.filter = "blur(5px)";
         // Kill it! Kill the rectangle!
         rect.x = undefined;
         rect.y = undefined;
         rect.alive = false;
+        started = false;
     }
 })

@@ -1,6 +1,11 @@
 <html>
-    <meta charset="utf-8"/>
     <head>
+        <title>cube</title>
+        <meta charset="utf-8"/>
+        <meta name="description" content="Battle others in this bullet hell game.">
+        <meta name="keywords" content="touhou, bullet, hell, cube, recty, io, game">
+        <meta name="author" content="Azza">
+        <link rel='icon' href='assets/favicon.ico' type='image/x-icon'/>
         <style>
             * {
                 margin: 0;
@@ -8,10 +13,11 @@
             }
             body {
                 background: #383838;
+                font-family: sans-serif;
             }
             #login {
                 position: fixed;
-                width: 300px;
+                width: 600px;
                 height: 450px;
                 left: 50%;
                 top: 55%;
@@ -20,7 +26,13 @@
                 background: rgba(255, 255, 255, 0);
                 border: 5px solid white;
                 padding: 25px;
-                border-radius: 10   px;
+                border-radius: 10px;
+            }
+            #info {
+                width: 50%;
+                height: 100%;
+                float: left;
+
             }
             #title {
                 position: absolute;
@@ -29,14 +41,36 @@
                 z-index: 1;
             }
             canvas {
-                filter: blur(5px);
                 background: #383838;
             }
+            #canvas {
+                filter: blur(5px);
+            }
+            #preview {
+                border: 2px solid white;
+                border-radius: 5px;
+                margin-top: 53px;
+                margin-bottom: 53px;
+            }
+            #classInfo {
+                width: 204px;
+                margin: auto;
+                text-align: left;
+                font-size: 20px;
+                line-height: 25px;
+                color: white;
+            }
+            #classes {
+                width: 50%;
+                height: 100%;
+                float: right;
+                text-align: center;
+            }
             #selection {
-                position: absolute;
                 font-size: 15px;
                 border: none;
                 background: white;
+                margin: 10px;
                 z-index: 2;
             }
             #chatbox {
@@ -80,34 +114,61 @@
                 background-color: white;
                 color: black;
             }
+            #changelog {
+                position: absolute;
+                margin: 10px;
+                color: white;
+                line-height: 25px;
+                font-size: 16px;
+                z-index: 2;
+            }
         </style>
     </head>
     <body>
+        <script data-ad-client="ca-pub-6041088365609974" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
         <img id="title" src="cube.png" width="300">
         <input id="chatbox" placeholder="Press Enter">
         <!--Main playfield-->
-        <div id="login">
-            <span>Name:</span>
-            <input id="name" placeholder="Enter your cube's name" oninput=color()>
-            <span>Color:</span>
-            <input id="color" placeholder="Enter your cube's color" oninput=color()>
-            <span>Border:</span>
-            <input id="border" placeholder="Leave empty to use your cube's color" oninput=color()>
-            <span>Chat color:</span>
-            <input id="chatColor" placeholder="Leave empty to use your cube's color" oninput=color()>
-            <button id="submit" onclick=start()>Enter</button>
+        <div id="changelog">
+            <h1>Welcome to cube!</h1>
+            <p>
+            Customize, kill, die, repeat. <br>
+            Updates are released daily.<br>
+            You can see a list of colors over <a href="https://htmlcolorcodes.com/">here.</a><br>
+            Alternatively, you can use HEX values.<br>
+            <br>
+            Changelog:<br>
+            17 / 2 / 2020<br>
+            - B-52 aka Bomber was added.</p>
         </div>
-        <select id="selection" style="margin: 10px">
-            <option>Default</option>
-            <option>Sniper</option>
-            <option>Destroyer</option>
-            <option>Hyperspeed</option>
-            <option>Tank</option>
-            <option>Reimu</option>
-            <option>Dasher</option>
-            <option>Octopath</option>
-            <option>B-52</option>
-        </select>
+        <div id="login">
+            <div id="info">
+                <span>Name:</span><br>
+                <input id="name" placeholder="Enter your cube's name" oninput=color()><br>
+                <span>Color:</span><br>
+                <input id="color" placeholder="Enter your cube's color" oninput=color()><br>
+                <span>Border:</span><br>
+                <input id="border" placeholder="Leave empty to use your cube's color" oninput=color()><br>
+                <span>Chat color:</span><br>
+                <input id="chatColor" placeholder="Leave empty to use your cube's color" oninput=color()><br>
+                <button id="submit" onclick=start()>Enter</button>
+            </div>
+            <div id="classes">
+                <select id="selection" onchange="changeClass(this.options[selection.selectedIndex].text);">
+                    <option>Default</option>
+                    <option>Sniper</option>
+                    <option>Destroyer</option>
+                    <option>Hyperspeed</option>
+                    <option>Tank</option>
+                    <option>Reimu</option>
+                    <option>Dasher</option>
+                    <option>Octopath</option>
+                    <option>B-52</option>
+                </select><br>
+                <canvas id="preview" width=200 height=100></canvas>
+                <p id="classInfo"></p>
+            </div>
+        </div>
         <canvas id="canvas"></canvas>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
         <script>var socket = io();</script>
@@ -119,16 +180,20 @@
         <script src="projectiles.js"></script>
         <script src="classes.js"></script>
         <script>
+            //The code below is a mess. I am sorry.
             //Disabling right click
             document.addEventListener('contextmenu', event => event.preventDefault());
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
+            // Update class info when selection is changed
+            var selection = document.getElementById("selection");
             // Getting inputs
             var elems = ["name", "color", "chatColor", "border",  "login"];
             for (i = 0; i < elems.length; i++) {
                 elems[i] = document.getElementById(elems[i]);
             }
             function color() {
+                //Update color vlaues
                 elems[0].style.color = elems[1].value;
                 elems[1].style.color = elems[1].value;
                 elems[2].style.color = elems[2].value;
@@ -136,9 +201,6 @@
                 for (i = 0; i < elems.length; i++) {
                     elems[i].style.borderColor = elems[3].value;
                 }
-            }
-            var rect = {};
-            function start() {
                 let name = elems[0].value;
                 let color = elems[1].value;
                 let border = elems[3].value;
@@ -148,7 +210,7 @@
                     name = "Cube";
                 }
                 if (color == "") {
-                    color = "black";
+                    color = "white";
                 }
                 if (border == "") {
                     border = color;
@@ -156,19 +218,35 @@
                 if (chatColor == "") {
                     chatColor = color;
                 }
-                
+                // Draw the preview
                 rect = new cube(name, color, border, chatColor);
-                var selection = document.getElementById("selection");
-                changeClass(selection.options[selection.selectedIndex].text);
-
+                var preview = document.getElementById("preview");
+                ctx = preview.getContext("2d"); 
+                rect.x = preview.width / 2;
+                rect.y = preview.height / 2 + 10;
+                ctx.fillStyle = "#383838";
+                ctx.fillRect(0, 0, preview.width, preview.height);
+                renPlayer(rect);
+            }
+            //
+            color();
+            changeClass(document.getElementById("selection").options[selection.selectedIndex].text);
+            //
+            var rect = {};
+            var started = false;
+            function start() {
+                color();
+                ctx = canvas.getContext("2d");
+                rect.x = canvas.width / 2;
+                rect.y = canvas.height / 2;
+                //Hiding the html
                 document.getElementById("chatbox").style.display ="block";
                 document.getElementById("login").style.display ="none";
                 document.getElementById("title").style.display = "none";
-                selection.style.display = "none";
                 canvas.style.filter = "none";
                 rect.alive = true;
+                started = true;
             }
-
             // Updating players and ping info
             setInterval(() => {
                 socket.emit("players");

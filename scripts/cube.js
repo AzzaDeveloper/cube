@@ -37,8 +37,12 @@ var bulletInfo = {
     height: 10,
     damage: 15,
     speed: 10,
+    friction: 0.6,
     rate: 0.33,
     lifetime: 3,
+    info: `
+    <i>Good ol' reliable.</i><br>
+    Decent bullet size, speed, and damage.`,
     type: "default",
     loops: {
         loop1: {

@@ -1,5 +1,5 @@
 var canvas = document.getElementById("canvas");
-var ctx = canvas.getContext("2d");
+var ctx;
 
 var players = 0;
 //Queue of players
@@ -14,7 +14,7 @@ function fillRect(x, y, width, height, mode) {
 }
 function renPlayer(cube) {
     // Name
-    if (cube.color != undefined && cube.alive) {
+    if ((cube.color != undefined && cube.alive) || !started) {
         const color = cube.color;
         const meta = cube.meta;
         // Cube name
@@ -45,7 +45,7 @@ function renBullets() {
     for (bullet in rect.bullets) {
         bullet = rect.bullets[bullet];
         // Remove the bullet if its life is up
-        if (Date.now() - bullet.date >= bullet.lifetime * 1000) {
+        if (Date.now() - bullet.date >= bulletInfo.lifetime * 1000) {
             rect.bullets.splice(rect.bullets.indexOf(bullet), 1);
         }
         // Move the bullet according to the direction of the mouse
@@ -54,7 +54,6 @@ function renBullets() {
             const vx = mousex - bullet.x;
             const vy = mousey - bullet.y;
             const dist = Math.sqrt(vx * vx + vy * vy);
-            console.log(dist)
             if (dist > bullet.width) {
                 bullet.createProjectile(mousex, mousey)
             } else {
@@ -65,6 +64,9 @@ function renBullets() {
         // Default
         bullet.x += bullet.dx;
         bullet.y += bullet.dy;
+        bullet.dx -= bullet.friction;
+        bullet.dy -= bullet.friction;
+        console.log(bullet.dx)
         // Check collision with others players
         for (pplayer in queue) {
             player = queue[pplayer];
@@ -86,29 +88,31 @@ setInterval(() => {
     canvas.height = window.innerHeight;
 }, 1000);
 function render() {
-    ctx.fillStyle = "#383838";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    checkKeys(); // input.js
-
-    //Loop through the queue and draw them
-    for (id in queue) {
-        const cube = queue[id];
-        renPlayer(cube);
+    if (started) {
+        // Clear the canvas
+        ctx.fillStyle = "#383838";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // input.js - check for keys hold
+        checkKeys(); // input.js
+        //Loop through the queue and draw them
+        for (id in queue) {
+            const cube = queue[id];
+            renPlayer(cube);
+        }
+        // Draw the local player
+        renPlayer(rect);
+        // Handles the bullets
+        renBullets();
+        // Write down users and ping
+        ctx.fillStyle = "white";
+        ctx.textAlign = "end";
+        ctx.fillText("Players online: " + players, canvas.width, canvas.height - 20);
+        ctx.fillText("Ping: " + pingms + "ms", canvas.width, canvas.height);
+        // Apply physics
+        physics();
+        // Send current state to server
+        socket.emit("state", rect);
     }
-    // Draw the local player
-    renPlayer(rect);
-    // Handles the bullets
-    renBullets();
-    // Write down users and ping
-    ctx.fillStyle = "white";
-    ctx.textAlign = "end";
-    ctx.fillText("Players online: " + players, canvas.width, canvas.height - 20);
-    ctx.fillText("Ping: " + pingms + "ms", canvas.width, canvas.height);
-    // Apply physics
-    physics();
-    // Send current state to server
-    socket.emit("state", rect);
     requestAnimationFrame(render);
 }
 requestAnimationFrame(render);

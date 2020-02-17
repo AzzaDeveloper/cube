@@ -53,7 +53,9 @@ canvas.addEventListener('mousedown', (e) => {
                 for (i = 0; i < bullet.amount; i++) {
                     //Create a new bullet at center of player
                     var info = bulletInfo;
-                    var bullete = new projectile(x, y, info.width, info.width, info.speed, info.damage, info.type, info.lifetime);
+                    var bullete = new projectile(x, y, info.width, info.width, info.speed, info.friction, info.damage, info.type);
+                    // Push to the array
+                    rect.bullets.push(bullete);
                     // Generate velocity for bullet and add to array of bullets
                     bullete.createProjectile(mousex, mousey);
                     //Adjust the offset
@@ -68,6 +70,7 @@ canvas.addEventListener('mousedown', (e) => {
             shootable = false;
             setTimeout(() => shootable = true, bulletInfo.rate * 1000)
         }
+        //Auto shoot while holding down
         intervalfire = setInterval(() => {
            shoot();
         }, bulletInfo.rate * 1000)
@@ -91,19 +94,21 @@ canvas.addEventListener("mouseup", (e) => {
     }
 })
 function checkKeys() {
-    if (!rect.dashing) {
-        //Movement
-        if (keys["w"]) {
-            physicsInfo.velY -= 5;
-        }
-        if (keys["a"]) {
-            physicsInfo.velX -= 5;
-        }
-        if (keys["s"]) {
-            physicsInfo.velY += 5;
-        }
-        if (keys["d"]) {
-            physicsInfo.velX += 5;
+    if (typeof rect !== "undefined") {
+        if (!rect.dashing) {
+            //Movement
+            if (keys["w"]) {
+                physicsInfo.velY -= 5;
+            }
+            if (keys["a"]) {
+                physicsInfo.velX -= 5;
+            }
+            if (keys["s"]) {
+                physicsInfo.velY += 5;
+            }
+            if (keys["d"]) {
+                physicsInfo.velX += 5;
+            }
         }
     }
 }
